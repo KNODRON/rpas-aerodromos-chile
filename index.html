@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>RPAS - Análisis Aeronáutico Chile</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+body { margin:0; }
+#map { height:100vh; }
+
+.panel {
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:#111;
+  color:#fff;
+  padding:12px;
+  border-radius:10px;
+  z-index:1000;
+  font-size:13px;
+  width:260px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="panel">
+<b>RPAS - Chile</b><br>
+Click y arrastra para medir<br><br>
+<b id="dist">Distancia: 0 km</b><br>
+<b id="closest"></b>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+let map = L.map('map').setView([-33.671139, -70.593222], 10);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+let data = [];
+let start = null;
+let line, circle;
+
+// cargar JSON
+fetch("aerodromos_chile.json")
+  .then(r => r.json())
+  .then(json => {
+    data = json;
+
+    json.forEach(p => {
+
+      let color = "blue";
+      if (p.tipo === "Aeropuerto") color = "red";
+      if (p.tipo === "Aeródromo") color = "orange";
+
+      L.circleMarker([p.lat, p.lon], {
+        radius: 5,
+        color: color
+      }).addTo(map)
+      .bindPopup(p.nombre);
+    });
+  });
+
+// distancia
+function dist(a,b){
+  let R=6371;
+  let dLat=(b.lat-a.lat)*Math.PI/180;
+  let dLon=(b.lng-a.lng)*Math.PI/180;
+
+  let x=Math.sin(dLat/2)**2 +
+        Math.cos(a.lat*Math.PI/180) *
+        Math.cos(b.lat*Math.PI/180) *
+        Math.sin(dLon/2)**2;
+
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+// detectar más cercano
+function closestPoint(pt){
+  let min=999;
+  let closest=null;
+
+  data.forEach(p=>{
+    let d=dist(pt,{lat:p.lat,lng:p.lon});
+    if(d<min){
+      min=d;
+      closest=p;
+    }
+  });
+
+  return {closest,min};
+}
+
+// interacción
+map.on("mousedown", e=>{
+  start=e.latlng;
+});
+
+map.on("mousemove", e=>{
+  if(!start) return;
+
+  let d = dist(start,e.latlng);
+
+  if(line) map.removeLayer(line);
+  if(circle) map.removeLayer(circle);
+
+  line = L.polyline([start,e.latlng], {color:"yellow"}).addTo(map);
+
+  circle = L.circle(start,{
+    radius:d*1000,
+    color:"green",
+    fillOpacity:0.05
+  }).addTo(map);
+
+  let c = closestPoint(start);
+
+  document.getElementById("dist").innerHTML =
+    "Distancia: "+d.toFixed(2)+" km";
+
+  document.getElementById("closest").innerHTML =
+    "Más cercano:<br>"+c.closest.nombre+
+    "<br>"+c.min.toFixed(2)+" km";
+});
+
+map.on("mouseup", ()=> start=null);
+
+</script>
+
+</body>
+</html>
