@@ -28,4 +28,18 @@ function usarMiUbicacion(){
 
   });
 
+  datos.forEach(p=>{
+  if(!p.lat || !p.lon) return;
+
+  let d = distanciaKm(inicioMedicion, {lat:p.lat, lng:p.lon});
+
+  if(d <= distanciaManual){
+    L.circleMarker([p.lat,p.lon],{
+      radius:8,
+      color:"#facc15",
+      fillColor:"#facc15",
+      fillOpacity:0.6
+    }).addTo(map);
+  }
+});
 }
