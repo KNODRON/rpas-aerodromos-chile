@@ -30,7 +30,8 @@ function nivelRiesgo(km) {
 
 function evaluarPuntoActual() {
   let punto = null;
-
+     ultimoCentro = punto;
+     cargarPuntos();
   if (marcadorUbicacion) {
     const pos = marcadorUbicacion.getLatLng();
     punto = { lat: pos.lat, lng: pos.lng };
