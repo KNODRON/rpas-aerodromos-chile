@@ -57,17 +57,18 @@ function colorPorTipo(tipo) {
 // ===============================
 
 function cargarPuntos() {
-  if (!datos || datos.length === 0) {
-    console.warn("No hay datos cargados.");
-    return;
-  }
-
   capaAerodromos.clearLayers();
 
   datos.forEach(p => {
     if (!p.lat || !p.lon) return;
 
-    let color = colorPorTipo(p.tipo);
+    // filtro por radio
+    if (radioActivo > 0 && ultimoCentro) {
+      const d = distanciaKm(ultimoCentro, {lat:p.lat, lng:p.lon});
+      if (d > radioActivo) return;
+    }
+
+    const color = colorPorTipo(p.tipo);
 
     L.circleMarker([p.lat, p.lon], {
       radius: p.tipo === "Aeropuerto" ? 7 : 5,
@@ -75,19 +76,10 @@ function cargarPuntos() {
       fillColor: color,
       fillOpacity: 0.85,
       weight: 2
-    })
-    .addTo(capaAerodromos)
-    .bindPopup(`
-      <b>${p.nombre || "Sin nombre"}</b><br>
-      <b>Tipo:</b> ${p.tipo || "S/I"}<br>
-      <b>OACI:</b> ${p.codigo_oaci || p.codigo || "S/I"}<br>
-      <b>Región:</b> ${p.region || "S/I"}<br>
-      <b>Comuna:</b> ${p.comuna || "S/I"}<br>
-      <b>Lat/Lon:</b> ${p.lat}, ${p.lon}
-    `);
+    }).addTo(capaAerodromos)
+    .bindPopup(`<b>${p.nombre}</b><br>${p.tipo}`);
   });
 }
-
 
 // ===============================
 // CENTRAR MAPA
@@ -97,15 +89,10 @@ function centrarChile() {
   map.setView([-35, -71], 5);
 }
 
-function centrarPirque() {
-  map.setView([-33.671139, -70.593222], 12);
-
-  L.marker([-33.671139, -70.593222])
-    .addTo(map)
-    .bindPopup("<b>Punto de interés Pirque</b><br>-33.671139, -70.593222")
-    .openPopup();
+function aplicarFiltroRadio(){
+  radioActivo = parseFloat(document.getElementById("radioFiltro").value);
+  cargarPuntos();
 }
-
 
 // ===============================
 // MEDICIÓN DINÁMICA
@@ -117,6 +104,8 @@ let circuloMedicion = null;
 let marcadorInicio = null;
 let marcadorCercano = null;
 let midiendo = false;
+let ultimoCentro = null;   // punto desde donde filtras (ubicación o medición)
+let radioActivo = 0;       // km
 
 map.on("mousedown", function(e) {
   inicioMedicion = e.latlng;
