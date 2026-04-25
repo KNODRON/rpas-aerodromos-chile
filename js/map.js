@@ -18,3 +18,9 @@ function cargarPuntos(){
 function centrarChile(){
   map.setView([-35,-71],5);
 }
+L.tileLayer.wms("https://geoportal.cl/geoserver/Infraestructura_Aerea/ows", {
+  layers: "infraestructura_area",
+  format: "image/png",
+  transparent: true,
+  attribution: "IDE Chile"
+}).addTo(map);
