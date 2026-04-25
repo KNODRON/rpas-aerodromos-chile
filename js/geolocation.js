@@ -19,7 +19,8 @@ function usarMiUbicacion(){
         cercano=p;
       }
     });
-
+    ultimoCentro = puntoActual;
+    cargarPuntos();
     document.getElementById("resultado").innerHTML =
       "Más cercano: "+cercano.nombre+
       "<br>"+min.toFixed(2)+" km"+
