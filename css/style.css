@@ -1,0 +1,19 @@
+body {
+  margin:0;
+  font-family:Arial;
+}
+
+#map {
+  height:100vh;
+}
+
+.panel {
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:#111;
+  color:#fff;
+  padding:12px;
+  border-radius:10px;
+  z-index:1000;
+}
