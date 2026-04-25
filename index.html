@@ -1,32 +1,84 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>RPAS Chile</title>
+  <meta charset="UTF-8">
+  <title>RPAS Chile | Plataforma Aeronáutica</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-<div class="panel">
-  <h1>RPAS Chile</h1>
+<div class="app">
 
-  <button onclick="usarMiUbicacion()">Mi ubicación</button>
-  <button onclick="centrarChile()">Centrar Chile</button>
+  <header class="topbar">
+    <div>
+      <h1>RPAS Chile</h1>
+      <p>Plataforma preliminar de análisis aeronáutico para operaciones RPAS</p>
+    </div>
+    <div class="status-pill">UGIT DAP - DGAC</div>
+  </header>
 
-<select id="radioFiltro" onchange="aplicarFiltroRadio()">
-  <option value="0">Sin filtro</option>
-  <option value="3">≤ 3 km</option>
-  <option value="5">≤ 5 km</option>
-  <option value="10">≤ 10 km</option>
-</select>
-  
-  <div id="resultado"></div>
+  <main class="main-layout">
+
+    <aside class="sidebar">
+
+      <section class="card">
+        <h2>Consulta operacional</h2>
+
+        <button onclick="usarMiUbicacion()">📍 Usar mi ubicación</button>
+        <button onclick="centrarChile()" class="secondary">🇨🇱 Centrar Chile</button>
+        <button onclick="centrarPirque()" class="secondary">🎯 Punto Pirque</button>
+        <button onclick="limpiarMedicion()" class="danger">Limpiar medición</button>
+      </section>
+
+      <section class="card">
+        <h2>Filtros</h2>
+
+        <label>Tipo de infraestructura</label>
+        <select id="tipoFiltro">
+          <option value="TODOS">Todos</option>
+          <option value="Aeropuerto">Aeropuertos</option>
+          <option value="Aeródromo">Aeródromos</option>
+        </select>
+
+        <label>Buscar</label>
+        <input id="busqueda" placeholder="Nombre, comuna, región u OACI">
+      </section>
+
+      <section class="card result-card">
+        <h2>Resultado</h2>
+        <div id="resultado">
+          Selecciona tu ubicación o haz clic y arrastra sobre el mapa para medir distancia.
+        </div>
+      </section>
+
+    </aside>
+
+    <section class="map-panel">
+      <div id="map"></div>
+    </section>
+
+  </main>
+
+  <footer class="bottom-panel">
+    <div>
+      <strong id="totalDatos">0</strong>
+      <span>registros cargados</span>
+    </div>
+    <div>
+      <strong id="visiblesDatos">0</strong>
+      <span>visibles</span>
+    </div>
+    <div>
+      <strong>Referencial</strong>
+      <span>No reemplaza validación DGAC / AIP / NOTAM</span>
+    </div>
+  </footer>
+
 </div>
-
-<div id="map"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
