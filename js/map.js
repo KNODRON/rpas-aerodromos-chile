@@ -9,12 +9,8 @@ let mapaBase = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   attribution: "&copy; OpenStreetMap"
 }).addTo(map);
 
-
-// ===============================
-// CAPAS
-// ===============================
-
 let capaAerodromos = L.layerGroup().addTo(map);
+let capaMedicion = L.layerGroup().addTo(map);
 
 let capaWMS = L.tileLayer.wms("https://geoportal.cl/geoserver/Infraestructura_Aerea/ows", {
   layers: "infraestructura_area",
@@ -23,221 +19,276 @@ let capaWMS = L.tileLayer.wms("https://geoportal.cl/geoserver/Infraestructura_Ae
   attribution: "IDE Chile"
 });
 
-// Si quieres que la capa WMS aparezca encendida al inicio, deja esta línea.
-// Si no, bórrala o coméntala.
-// capaWMS.addTo(map);
-
-let controlCapas = L.control.layers(
+L.control.layers(
+  { "Mapa base": mapaBase },
   {
-    "Mapa base": mapaBase
+    "Aeródromos / Aeropuertos": capaAerodromos,
+    "Capa oficial IDE Chile": capaWMS,
+    "Medición": capaMedicion
   },
-  {
-    "Aeródromos / Aeropuertos JSON": capaAerodromos,
-    "Infraestructura Aérea IDE Chile (WMS)": capaWMS
-    "Radio de influencia": capaRadio
-  },
-  {
-    collapsed: false
-  }
+  { collapsed: false }
 ).addTo(map);
 
 
 // ===============================
-// FUNCIONES DE COLOR
+// VARIABLES
+// ===============================
+
+let inicioMedicion = null;
+let midiendo = false;
+let marcadorCercano = null;
+
+
+// ===============================
+// COLORES
 // ===============================
 
 function colorPorTipo(tipo) {
-  if (tipo === "Aeropuerto") return "red";
-  if (tipo === "Aeródromo") return "orange";
-  return "blue";
+  if (tipo === "Aeropuerto") return "#ef4444";
+  if (tipo === "Aeródromo") return "#f97316";
+  return "#38bdf8";
 }
 
 
 // ===============================
-// CARGAR PUNTOS JSON
+// CARGA Y RENDER DE PUNTOS
 // ===============================
 
 function cargarPuntos() {
   capaAerodromos.clearLayers();
 
+  const tipoFiltro = document.getElementById("tipoFiltro")?.value || "TODOS";
+  const busqueda = document.getElementById("busqueda")?.value.toLowerCase().trim() || "";
+
+  let visibles = 0;
+
+  datos.forEach(p => {
+    if (!p.lat || !p.lon) return;
+
+    const texto = `${p.nombre} ${p.codigo_oaci || ""} ${p.region || ""} ${p.comuna || ""}`.toLowerCase();
+
+    if (tipoFiltro !== "TODOS" && p.tipo !== tipoFiltro) return;
+    if (busqueda && !texto.includes(busqueda)) return;
+
+    visibles++;
+
+    L.circleMarker([p.lat, p.lon], {
+      radius: p.tipo === "Aeropuerto" ? 7 : 5,
+      color: colorPorTipo(p.tipo),
+      fillColor: colorPorTipo(p.tipo),
+      fillOpacity: 0.85,
+      weight: 2
+    })
+    .addTo(capaAerodromos)
+    .bindPopup(`
+      <b>${p.nombre || "Sin nombre"}</b><br>
+      Tipo: ${p.tipo || "S/I"}<br>
+      OACI: ${p.codigo_oaci || "S/I"}<br>
+      Región: ${p.region || "S/I"}<br>
+      Comuna: ${p.comuna || "S/I"}<br>
+      Uso: ${p.uso || "S/I"}
+    `);
+  });
+
+  actualizarContadores(visibles);
+}
+
+function actualizarContadores(visibles) {
+  const total = document.getElementById("totalDatos");
+  const visiblesBox = document.getElementById("visiblesDatos");
+
+  if (total) total.textContent = datos.length;
+  if (visiblesBox) visiblesBox.textContent = visibles;
+}
+
+
 // ===============================
-// CENTRAR MAPA
+// CENTRADO
 // ===============================
 
 function centrarChile() {
   map.setView([-35, -71], 5);
 }
 
-function aplicarFiltroRadio(){
-  radioActivo = parseFloat(document.getElementById("radioFiltro").value);
-  cargarPuntos();
+function centrarPirque() {
+  const lat = -33.671139;
+  const lon = -70.593222;
+
+  map.setView([lat, lon], 12);
+
+  L.marker([lat, lon])
+    .addTo(capaMedicion)
+    .bindPopup("<b>Punto de interés Pirque</b><br>-33.671139, -70.593222")
+    .openPopup();
+
+  evaluarDesdePunto({ lat, lng: lon });
 }
 
+
 // ===============================
-// MEDICIÓN DINÁMICA
+// MEDICIÓN CON CLICK + ARRASTRE
 // ===============================
 
-let inicioMedicion = null;
-let lineaMedicion = null;
-let circuloMedicion = null;
-let marcadorInicio = null;
-let marcadorCercano = null;
-let midiendo = false;
-let ultimoCentro = null;   // punto desde donde filtras (ubicación o medición)
-let radioActivo = 0;       // km
-
-map.on("mousedown", function(e) {
+map.on("mousedown", e => {
   inicioMedicion = e.latlng;
   midiendo = true;
+  capaMedicion.clearLayers();
 
-  if (marcadorInicio) map.removeLayer(marcadorInicio);
-
-  marcadorInicio = L.circleMarker(inicioMedicion, {
+  L.circleMarker(inicioMedicion, {
     radius: 8,
     color: "#ffffff",
     fillColor: "#22c55e",
     fillOpacity: 1,
     weight: 3
-  }).addTo(map);
+  }).addTo(capaMedicion);
 });
 
-map.on("mousemove", function(e) {
+map.on("mousemove", e => {
   if (!midiendo || !inicioMedicion) return;
-
-  actualizarMedicion(e.latlng);
+  dibujarMedicion(inicioMedicion, e.latlng);
 });
 
-map.on("mouseup", function(e) {
+map.on("mouseup", e => {
   if (!midiendo || !inicioMedicion) return;
-
   midiendo = false;
-  actualizarMedicion(e.latlng);
+  dibujarMedicion(inicioMedicion, e.latlng);
+  evaluarDesdePunto(inicioMedicion);
 });
 
-capaRadio.clearLayers();
+function dibujarMedicion(origen, destino) {
+  capaMedicion.clearLayers();
 
-datos.forEach(p => {
-  if (!p.lat || !p.lon) return;
+  const d = distanciaKm(origen, destino);
 
-  let d = distanciaKm(inicioMedicion, {
-    lat: p.lat,
-    lng: p.lon
-  });
+  L.circleMarker(origen, {
+    radius: 8,
+    color: "#ffffff",
+    fillColor: "#22c55e",
+    fillOpacity: 1,
+    weight: 3
+  }).addTo(capaMedicion);
 
-  if (d <= distanciaManual) {
-    L.circleMarker([p.lat, p.lon], {
-      radius: 7,
-      color: "#facc15",
-      fillColor: "#facc15",
-      fillOpacity: 0.7,
-      weight: 2
-    })
-    .bindPopup(`
-      <b>${p.nombre}</b><br>
-      ${p.tipo}<br>
-      ${d.toFixed(2)} km
-    `)
-    .addTo(capaRadio);
-  }
-});
-function actualizarMedicion(destino) {
-  let distanciaManual = distanciaKm(inicioMedicion, destino);
-  let cercano = buscarMasCercano(inicioMedicion);
-
-  if (lineaMedicion) map.removeLayer(lineaMedicion);
-  if (circuloMedicion) map.removeLayer(circuloMedicion);
-  if (marcadorCercano) map.removeLayer(marcadorCercano);
-
-  lineaMedicion = L.polyline([inicioMedicion, destino], {
-    color: "yellow",
+  L.polyline([origen, destino], {
+    color: "#facc15",
     weight: 3,
     dashArray: "8,8"
-  }).addTo(map);
+  }).addTo(capaMedicion);
 
-  circuloMedicion = L.circle(inicioMedicion, {
-  radius: distanciaManual * 1000,
-  color: "#facc15",
-  weight: 2,
-  fillColor: "#facc15",
-  fillOpacity: 0.08
-}).addTo(capaRadio);
+  L.circle(origen, {
+    radius: d * 1000,
+    color: "#facc15",
+    fillColor: "#facc15",
+    fillOpacity: 0.07,
+    weight: 2
+  }).addTo(capaMedicion);
 
-  if (cercano && cercano.punto) {
-    marcadorCercano = L.circleMarker([cercano.punto.lat, cercano.punto.lon], {
-      radius: 12,
-      color: "#ffffff",
-      fillColor: "red",
-      fillOpacity: 1,
-      weight: 3
-    })
-    .addTo(map)
-    .bindPopup(`
-      <b>Más cercano</b><br>
-      ${cercano.punto.nombre}<br>
-      ${cercano.punto.tipo}<br>
-      ${cercano.distancia.toFixed(2)} km
-    `);
-
-    let resultado = document.getElementById("resultado");
-
-    if (resultado) {
-      resultado.innerHTML = `
-        <b>Radio manual:</b> ${distanciaManual.toFixed(2)} km<br>
-        <b>Más cercano:</b> ${cercano.punto.nombre}<br>
-        <b>Tipo:</b> ${cercano.punto.tipo}<br>
-        <b>Distancia al más cercano:</b> ${cercano.distancia.toFixed(2)} km<br>
-        <b>Evaluación:</b> ${alertaPorDistancia(cercano.distancia)}
-      `;
-    }
-  }
+  mostrarResultadoParcial(d);
 }
 
 function limpiarMedicion() {
+  capaMedicion.clearLayers();
   inicioMedicion = null;
   midiendo = false;
-  capaRadio.clearLayers();
 
-  if (lineaMedicion) map.removeLayer(lineaMedicion);
-  if (circuloMedicion) map.removeLayer(circuloMedicion);
-  if (marcadorInicio) map.removeLayer(marcadorInicio);
-  if (marcadorCercano) map.removeLayer(marcadorCercano);
-
-  lineaMedicion = null;
-  circuloMedicion = null;
-  marcadorInicio = null;
-  marcadorCercano = null;
-
-  let resultado = document.getElementById("resultado");
-  if (resultado) resultado.innerHTML = "Medición limpiada.";
+  const resultado = document.getElementById("resultado");
+  if (resultado) {
+    resultado.innerHTML = "Selecciona tu ubicación o haz clic y arrastra sobre el mapa para medir distancia.";
+  }
 }
 
 
 // ===============================
-// BUSCAR MÁS CERCANO
+// EVALUACIÓN DE PROXIMIDAD
 // ===============================
 
 function buscarMasCercano(origen) {
-  if (!datos || datos.length === 0) return null;
-
-  let distanciaMinima = Infinity;
-  let puntoMasCercano = null;
+  let min = Infinity;
+  let cercano = null;
 
   datos.forEach(p => {
     if (!p.lat || !p.lon) return;
 
-    let d = distanciaKm(origen, {
+    const d = distanciaKm(origen, {
       lat: p.lat,
       lng: p.lon
     });
 
-    if (d < distanciaMinima) {
-      distanciaMinima = d;
-      puntoMasCercano = p;
+    if (d < min) {
+      min = d;
+      cercano = p;
     }
   });
 
-  return {
-    punto: puntoMasCercano,
-    distancia: distanciaMinima
-  };
+  return { punto: cercano, distancia: min };
 }
+
+function evaluarDesdePunto(punto) {
+  const obj = buscarMasCercano(punto);
+  if (!obj || !obj.punto) return;
+
+  if (marcadorCercano) {
+    capaMedicion.removeLayer(marcadorCercano);
+  }
+
+  marcadorCercano = L.circleMarker([obj.punto.lat, obj.punto.lon], {
+    radius: 12,
+    color: "#ffffff",
+    fillColor: "#ef4444",
+    fillOpacity: 1,
+    weight: 3
+  })
+  .addTo(capaMedicion)
+  .bindPopup(`
+    <b>Infraestructura más cercana</b><br>
+    ${obj.punto.nombre}<br>
+    ${obj.punto.tipo}<br>
+    ${obj.distancia.toFixed(2)} km
+  `);
+
+  mostrarResultadoEvaluacion(punto, obj);
+}
+
+function mostrarResultadoParcial(radio) {
+  const resultado = document.getElementById("resultado");
+  if (!resultado) return;
+
+  resultado.innerHTML = `
+    <b>Radio manual:</b> ${radio.toFixed(2)} km<br>
+    Suelta el mouse para evaluar el punto inicial.
+  `;
+}
+
+function mostrarResultadoEvaluacion(punto, obj) {
+  const resultado = document.getElementById("resultado");
+  if (!resultado) return;
+
+  const nivel = alertaPorDistancia(obj.distancia);
+  let clase = "verde";
+
+  if (nivel === "ALTO RIESGO") clase = "rojo";
+  if (nivel === "PRECAUCIÓN") clase = "amarillo";
+
+  resultado.innerHTML = `
+    <b>Ubicación evaluada:</b><br>
+    ${punto.lat.toFixed(6)}, ${punto.lng.toFixed(6)}<br><br>
+
+    <b>Más cercano:</b><br>
+    ${obj.punto.nombre}<br>
+    <b>Tipo:</b> ${obj.punto.tipo}<br>
+    <b>OACI:</b> ${obj.punto.codigo_oaci || "S/I"}<br>
+    <b>Comuna:</b> ${obj.punto.comuna || "S/I"}<br>
+    <b>Distancia:</b> ${obj.distancia.toFixed(2)} km
+
+    <div class="alerta ${clase}">${nivel}</div>
+  `;
+}
+
+
+// ===============================
+// EVENTOS UI
+// ===============================
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("tipoFiltro")?.addEventListener("change", cargarPuntos);
+  document.getElementById("busqueda")?.addEventListener("input", cargarPuntos);
+});
