@@ -1,45 +1,50 @@
-function usarMiUbicacion(){
+let marcadorUbicacion = null;
 
-  navigator.geolocation.getCurrentPosition(pos=>{
-
-    let lat = pos.coords.latitude;
-    let lon = pos.coords.longitude;
-
-    let punto = {lat:lat,lng:lon};
-
-    map.setView([lat,lon],13);
-
-    let cercano = null;
-    let min = 999;
-
-    datos.forEach(p=>{
-      let d = distanciaKm(punto,{lat:p.lat,lng:p.lon});
-      if(d<min){
-        min=d;
-        cercano=p;
-      }
-    });
-    ultimoCentro = puntoActual;
-    cargarPuntos();
-    document.getElementById("resultado").innerHTML =
-      "Más cercano: "+cercano.nombre+
-      "<br>"+min.toFixed(2)+" km"+
-      "<br>"+alertaPorDistancia(min);
-
-  });
-
-  datos.forEach(p=>{
-  if(!p.lat || !p.lon) return;
-
-  let d = distanciaKm(inicioMedicion, {lat:p.lat, lng:p.lon});
-
-  if(d <= distanciaManual){
-    L.circleMarker([p.lat,p.lon],{
-      radius:8,
-      color:"#facc15",
-      fillColor:"#facc15",
-      fillOpacity:0.6
-    }).addTo(map);
+function usarMiUbicacion() {
+  if (!navigator.geolocation) {
+    alert("Tu navegador no permite geolocalización.");
+    return;
   }
-});
+
+  const resultado = document.getElementById("resultado");
+  if (resultado) resultado.innerHTML = "Obteniendo ubicación actual...";
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      const punto = { lat, lng: lon };
+
+      map.setView([lat, lon], 13);
+
+      if (marcadorUbicacion) {
+        capaMedicion.removeLayer(marcadorUbicacion);
+      }
+
+      marcadorUbicacion = L.circleMarker([lat, lon], {
+        radius: 10,
+        color: "#ffffff",
+        fillColor: "#22c55e",
+        fillOpacity: 1,
+        weight: 3
+      })
+      .addTo(capaMedicion)
+      .bindPopup(`
+        <b>Mi ubicación actual</b><br>
+        ${lat.toFixed(6)}, ${lon.toFixed(6)}
+      `)
+      .openPopup();
+
+      evaluarDesdePunto(punto);
+    },
+    () => {
+      if (resultado) resultado.innerHTML = "No se pudo obtener la ubicación actual.";
+      alert("No se pudo obtener la ubicación. Revisa permisos del navegador.");
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  );
 }
