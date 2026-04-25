@@ -34,6 +34,7 @@ let controlCapas = L.control.layers(
   {
     "Aeródromos / Aeropuertos JSON": capaAerodromos,
     "Infraestructura Aérea IDE Chile (WMS)": capaWMS
+    "Radio de influencia": capaRadio
   },
   {
     collapsed: false
@@ -58,28 +59,6 @@ function colorPorTipo(tipo) {
 
 function cargarPuntos() {
   capaAerodromos.clearLayers();
-
-  datos.forEach(p => {
-    if (!p.lat || !p.lon) return;
-
-    // filtro por radio
-    if (radioActivo > 0 && ultimoCentro) {
-      const d = distanciaKm(ultimoCentro, {lat:p.lat, lng:p.lon});
-      if (d > radioActivo) return;
-    }
-
-    const color = colorPorTipo(p.tipo);
-
-    L.circleMarker([p.lat, p.lon], {
-      radius: p.tipo === "Aeropuerto" ? 7 : 5,
-      color: color,
-      fillColor: color,
-      fillOpacity: 0.85,
-      weight: 2
-    }).addTo(capaAerodromos)
-    .bindPopup(`<b>${p.nombre}</b><br>${p.tipo}`);
-  });
-}
 
 // ===============================
 // CENTRAR MAPA
@@ -135,6 +114,32 @@ map.on("mouseup", function(e) {
   actualizarMedicion(e.latlng);
 });
 
+capaRadio.clearLayers();
+
+datos.forEach(p => {
+  if (!p.lat || !p.lon) return;
+
+  let d = distanciaKm(inicioMedicion, {
+    lat: p.lat,
+    lng: p.lon
+  });
+
+  if (d <= distanciaManual) {
+    L.circleMarker([p.lat, p.lon], {
+      radius: 7,
+      color: "#facc15",
+      fillColor: "#facc15",
+      fillOpacity: 0.7,
+      weight: 2
+    })
+    .bindPopup(`
+      <b>${p.nombre}</b><br>
+      ${p.tipo}<br>
+      ${d.toFixed(2)} km
+    `)
+    .addTo(capaRadio);
+  }
+});
 function actualizarMedicion(destino) {
   let distanciaManual = distanciaKm(inicioMedicion, destino);
   let cercano = buscarMasCercano(inicioMedicion);
@@ -150,12 +155,12 @@ function actualizarMedicion(destino) {
   }).addTo(map);
 
   circuloMedicion = L.circle(inicioMedicion, {
-    radius: distanciaManual * 1000,
-    color: "yellow",
-    fillColor: "yellow",
-    fillOpacity: 0.07,
-    weight: 2
-  }).addTo(map);
+  radius: distanciaManual * 1000,
+  color: "#facc15",
+  weight: 2,
+  fillColor: "#facc15",
+  fillOpacity: 0.08
+}).addTo(capaRadio);
 
   if (cercano && cercano.punto) {
     marcadorCercano = L.circleMarker([cercano.punto.lat, cercano.punto.lon], {
@@ -190,6 +195,7 @@ function actualizarMedicion(destino) {
 function limpiarMedicion() {
   inicioMedicion = null;
   midiendo = false;
+  capaRadio.clearLayers();
 
   if (lineaMedicion) map.removeLayer(lineaMedicion);
   if (circuloMedicion) map.removeLayer(circuloMedicion);
