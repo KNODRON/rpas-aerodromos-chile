@@ -95,6 +95,15 @@ function cargarPuntos() {
       Región: ${p.region || "S/I"}<br>
       Comuna: ${p.comuna || "S/I"}<br>
       Uso: ${p.uso || "S/I"}
+    `)
+      .bindPopup(`
+    <b>${p.nombre}</b><br>
+    ${p.tipo}<br>
+    ${p.codigo_oaci || "S/I"}<br><br>
+
+    <button onclick="abrirNotamAerodromo('${p.codigo_oaci}')">
+      Ver NOTAM
+    </button>
     `);
   });
 
