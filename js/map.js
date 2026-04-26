@@ -2,7 +2,9 @@
 // MAPA BASE
 // ===============================
 
-let map = L.map("map").setView([-35, -71], 5);
+let map = L.map("map", {
+  zoomControl: true
+}).setView([-35, -71], 5);
 
 let mapaBase = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
@@ -34,9 +36,9 @@ L.control.layers(
 // VARIABLES
 // ===============================
 
-let inicioMedicion = null;
-let midiendo = false;
 let marcadorCercano = null;
+let puntoMedicion = null;
+let midiendoDerecho = false;
 
 
 // ===============================
@@ -47,6 +49,12 @@ function colorPorTipo(tipo) {
   if (tipo === "Aeropuerto") return "#ef4444";
   if (tipo === "Aeródromo") return "#f97316";
   return "#38bdf8";
+}
+
+function colorPorRiesgo(km) {
+  if (km <= 3) return "#ef4444";
+  if (km <= 5) return "#facc15";
+  return "#22c55e";
 }
 
 
@@ -110,27 +118,31 @@ function centrarChile() {
   map.setView([-35, -71], 5);
 }
 
+
 // ===============================
-// MEDICIÓN CON CLICK + ARRASTRE
+// CLIC IZQUIERDO: EVALUAR PUNTO
 // ===============================
 
-// Evita menú del botón derecho
-map.getContainer().addEventListener("contextmenu", e => e.preventDefault());
-
-let puntoMedicion = null;
-let midiendoDerecho = false;
-
-// CLIC IZQUIERDO: evaluar punto
 map.on("click", e => {
-  evaluarDesdePunto(e.latlng);
+  if (midiendoDerecho) return;
+  evaluarDesdePunto(e.latlng, true);
 });
 
-// BOTÓN DERECHO PRESIONADO: inicia medición
+
+// ===============================
+// BOTÓN DERECHO: MEDIR RADIO
+// ===============================
+
+map.getContainer().addEventListener("contextmenu", e => {
+  e.preventDefault();
+});
+
 map.getContainer().addEventListener("mousedown", e => {
   if (e.button !== 2) return;
 
-  const punto = map.mouseEventToLatLng(e);
-  puntoMedicion = punto;
+  e.preventDefault();
+
+  puntoMedicion = map.mouseEventToLatLng(e);
   midiendoDerecho = true;
 
   capaMedicion.clearLayers();
@@ -144,24 +156,116 @@ map.getContainer().addEventListener("mousedown", e => {
   }).addTo(capaMedicion);
 });
 
-// BOTÓN DERECHO ARRASTRANDO: dibuja radio
 map.getContainer().addEventListener("mousemove", e => {
   if (!midiendoDerecho || !puntoMedicion) return;
+
+  e.preventDefault();
 
   const destino = map.mouseEventToLatLng(e);
   dibujarMedicion(puntoMedicion, destino);
 });
 
-// SOLTAR BOTÓN DERECHO: termina medición
 map.getContainer().addEventListener("mouseup", e => {
   if (e.button !== 2) return;
   if (!midiendoDerecho || !puntoMedicion) return;
+
+  e.preventDefault();
 
   const destino = map.mouseEventToLatLng(e);
   midiendoDerecho = false;
 
   dibujarMedicion(puntoMedicion, destino);
 });
+
+
+// ===============================
+// DIBUJAR MEDICIÓN
+// ===============================
+
+function dibujarMedicion(origen, destino) {
+  capaMedicion.clearLayers();
+
+  const radio = distanciaKm(origen, destino);
+  const color = colorPorRiesgo(radio);
+
+  L.circleMarker(origen, {
+    radius: 8,
+    color: "#ffffff",
+    fillColor: "#22c55e",
+    fillOpacity: 1,
+    weight: 3
+  }).addTo(capaMedicion);
+
+  L.polyline([origen, destino], {
+    color: color,
+    weight: 3,
+    dashArray: "8,8"
+  }).addTo(capaMedicion);
+
+  L.circle(origen, {
+    radius: radio * 1000,
+    color: color,
+    fillColor: color,
+    fillOpacity: 0.08,
+    weight: 2
+  }).addTo(capaMedicion);
+
+  const cercano = buscarMasCercano(origen);
+
+  if (cercano && cercano.punto) {
+    L.circleMarker([cercano.punto.lat, cercano.punto.lon], {
+      radius: 12,
+      color: "#ffffff",
+      fillColor: "#ef4444",
+      fillOpacity: 1,
+      weight: 3
+    })
+    .addTo(capaMedicion)
+    .bindPopup(`
+      <b>Infraestructura más cercana</b><br>
+      ${cercano.punto.nombre}<br>
+      ${cercano.punto.tipo}<br>
+      ${cercano.distancia.toFixed(2)} km
+    `);
+  }
+
+  mostrarResultadoMedicion(origen, radio, cercano);
+}
+
+function mostrarResultadoMedicion(origen, radio, cercano) {
+  const resultado = document.getElementById("resultado");
+  if (!resultado) return;
+
+  resultado.innerHTML = `
+    <b>Medición manual:</b><br>
+    Origen: ${origen.lat.toFixed(6)}, ${origen.lng.toFixed(6)}<br>
+    Radio medido: ${radio.toFixed(2)} km<br><br>
+
+    <b>Más cercano desde el origen:</b><br>
+    ${cercano?.punto?.nombre || "S/I"}<br>
+    <b>Tipo:</b> ${cercano?.punto?.tipo || "S/I"}<br>
+    <b>OACI:</b> ${cercano?.punto?.codigo_oaci || "S/I"}<br>
+    <b>Distancia:</b> ${cercano?.distancia?.toFixed(2) || "S/I"} km
+  `;
+}
+
+
+// ===============================
+// LIMPIAR MEDICIÓN
+// ===============================
+
+function limpiarMedicion() {
+  capaMedicion.clearLayers();
+  marcadorCercano = null;
+  puntoMedicion = null;
+  midiendoDerecho = false;
+
+  const resultado = document.getElementById("resultado");
+  if (resultado) {
+    resultado.innerHTML = "Selecciona tu ubicación o haz clic en el mapa para consultar. Usa botón derecho + arrastrar para medir distancia.";
+  }
+}
+
 
 // ===============================
 // EVALUACIÓN DE PROXIMIDAD
@@ -188,13 +292,19 @@ function buscarMasCercano(origen) {
   return { punto: cercano, distancia: min };
 }
 
-function evaluarDesdePunto(punto) {
+function evaluarDesdePunto(punto, limpiar = true) {
   const obj = buscarMasCercano(punto);
   if (!obj || !obj.punto) return;
 
-  if (marcadorCercano) {
-    capaMedicion.removeLayer(marcadorCercano);
-  }
+  if (limpiar) capaMedicion.clearLayers();
+
+  L.circleMarker([punto.lat, punto.lng], {
+    radius: 8,
+    color: "#ffffff",
+    fillColor: "#22c55e",
+    fillOpacity: 1,
+    weight: 3
+  }).addTo(capaMedicion);
 
   marcadorCercano = L.circleMarker([obj.punto.lat, obj.punto.lon], {
     radius: 12,
@@ -211,17 +321,16 @@ function evaluarDesdePunto(punto) {
     ${obj.distancia.toFixed(2)} km
   `);
 
+  L.polyline([
+    [punto.lat, punto.lng],
+    [obj.punto.lat, obj.punto.lon]
+  ], {
+    color: "#facc15",
+    weight: 3,
+    dashArray: "8,8"
+  }).addTo(capaMedicion);
+
   mostrarResultadoEvaluacion(punto, obj);
-}
-
-function mostrarResultadoParcial(radio) {
-  const resultado = document.getElementById("resultado");
-  if (!resultado) return;
-
-  resultado.innerHTML = `
-    <b>Radio manual:</b> ${radio.toFixed(2)} km<br>
-    Suelta el mouse para evaluar el punto inicial.
-  `;
 }
 
 function mostrarResultadoEvaluacion(punto, obj) {
