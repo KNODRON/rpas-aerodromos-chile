@@ -110,31 +110,32 @@ function centrarChile() {
   map.setView([-35, -71], 5);
 }
 
-function centrarPirque() {
-  const lat = -33.671139;
-  const lon = -70.593222;
-
-  map.setView([lat, lon], 12);
-
-  L.marker([lat, lon])
-    .addTo(capaMedicion)
-    .bindPopup("<b>Punto de interés Pirque</b><br>-33.671139, -70.593222")
-    .openPopup();
-
-  evaluarDesdePunto({ lat, lng: lon });
-}
-
-
 // ===============================
 // MEDICIÓN CON CLICK + ARRASTRE
 // ===============================
 
-map.on("mousedown", e => {
-  inicioMedicion = e.latlng;
-  midiendo = true;
+// Evita menú del botón derecho
+map.getContainer().addEventListener("contextmenu", e => e.preventDefault());
+
+let puntoMedicion = null;
+let midiendoDerecho = false;
+
+// CLIC IZQUIERDO: evaluar punto
+map.on("click", e => {
+  evaluarDesdePunto(e.latlng);
+});
+
+// BOTÓN DERECHO PRESIONADO: inicia medición
+map.getContainer().addEventListener("mousedown", e => {
+  if (e.button !== 2) return;
+
+  const punto = map.mouseEventToLatLng(e);
+  puntoMedicion = punto;
+  midiendoDerecho = true;
+
   capaMedicion.clearLayers();
 
-  L.circleMarker(inicioMedicion, {
+  L.circleMarker(puntoMedicion, {
     radius: 8,
     color: "#ffffff",
     fillColor: "#22c55e",
@@ -143,59 +144,24 @@ map.on("mousedown", e => {
   }).addTo(capaMedicion);
 });
 
-map.on("mousemove", e => {
-  if (!midiendo || !inicioMedicion) return;
-  dibujarMedicion(inicioMedicion, e.latlng);
+// BOTÓN DERECHO ARRASTRANDO: dibuja radio
+map.getContainer().addEventListener("mousemove", e => {
+  if (!midiendoDerecho || !puntoMedicion) return;
+
+  const destino = map.mouseEventToLatLng(e);
+  dibujarMedicion(puntoMedicion, destino);
 });
 
-map.on("mouseup", e => {
-  if (!midiendo || !inicioMedicion) return;
-  midiendo = false;
-  dibujarMedicion(inicioMedicion, e.latlng);
-  evaluarDesdePunto(inicioMedicion);
+// SOLTAR BOTÓN DERECHO: termina medición
+map.getContainer().addEventListener("mouseup", e => {
+  if (e.button !== 2) return;
+  if (!midiendoDerecho || !puntoMedicion) return;
+
+  const destino = map.mouseEventToLatLng(e);
+  midiendoDerecho = false;
+
+  dibujarMedicion(puntoMedicion, destino);
 });
-
-function dibujarMedicion(origen, destino) {
-  capaMedicion.clearLayers();
-
-  const d = distanciaKm(origen, destino);
-
-  L.circleMarker(origen, {
-    radius: 8,
-    color: "#ffffff",
-    fillColor: "#22c55e",
-    fillOpacity: 1,
-    weight: 3
-  }).addTo(capaMedicion);
-
-  L.polyline([origen, destino], {
-    color: "#facc15",
-    weight: 3,
-    dashArray: "8,8"
-  }).addTo(capaMedicion);
-
-  L.circle(origen, {
-    radius: d * 1000,
-    color: "#facc15",
-    fillColor: "#facc15",
-    fillOpacity: 0.07,
-    weight: 2
-  }).addTo(capaMedicion);
-
-  mostrarResultadoParcial(d);
-}
-
-function limpiarMedicion() {
-  capaMedicion.clearLayers();
-  inicioMedicion = null;
-  midiendo = false;
-
-  const resultado = document.getElementById("resultado");
-  if (resultado) {
-    resultado.innerHTML = "Selecciona tu ubicación o haz clic y arrastra sobre el mapa para medir distancia.";
-  }
-}
-
 
 // ===============================
 // EVALUACIÓN DE PROXIMIDAD
