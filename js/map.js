@@ -29,7 +29,6 @@ let marcadorCercano = null;
 let puntoMedicion = null;
 let midiendoDerecho = false;
 
-
 // ===============================
 // COLORES
 // ===============================
@@ -45,7 +44,6 @@ function colorPorRiesgo(km) {
   if (km <= 5) return "#facc15";
   return "#22c55e";
 }
-
 
 // ===============================
 // CARGA Y RENDER DE PUNTOS
@@ -76,24 +74,18 @@ function cargarPuntos() {
       fillOpacity: 0.85,
       weight: 2
     })
-    .addTo(capaAerodromos)
-    .bindPopup(`
-      <b>${p.nombre || "Sin nombre"}</b><br>
-      Tipo: ${p.tipo || "S/I"}<br>
-      OACI: ${p.codigo_oaci || "S/I"}<br>
-      Región: ${p.region || "S/I"}<br>
-      Comuna: ${p.comuna || "S/I"}<br>
-      Uso: ${p.uso || "S/I"}
-    `)
+      .addTo(capaAerodromos)
       .bindPopup(`
-    <b>${p.nombre}</b><br>
-    ${p.tipo}<br>
-    ${p.codigo_oaci || "S/I"}<br><br>
-
-    <button onclick="abrirNotamAerodromo('${p.codigo_oaci}')">
-      Ver NOTAM
-    </button>
-    `);
+        <b>${p.nombre || "Sin nombre"}</b><br>
+        <b>Tipo:</b> ${p.tipo || "S/I"}<br>
+        <b>OACI:</b> ${p.codigo_oaci || "S/I"}<br>
+        <b>Región:</b> ${p.region || "S/I"}<br>
+        <b>Comuna:</b> ${p.comuna || "S/I"}<br>
+        <b>Uso:</b> ${p.uso || "S/I"}<br><br>
+        <button class="popup-btn" onclick="abrirNotamAerodromo('${p.codigo_oaci || ""}')">
+          Ver NOTAM
+        </button>
+      `);
   });
 
   actualizarContadores(visibles);
@@ -107,7 +99,6 @@ function actualizarContadores(visibles) {
   if (visiblesBox) visiblesBox.textContent = visibles;
 }
 
-
 // ===============================
 // CENTRADO
 // ===============================
@@ -115,7 +106,6 @@ function actualizarContadores(visibles) {
 function centrarChile() {
   map.setView([-35, -71], 5);
 }
-
 
 // ===============================
 // CLIC IZQUIERDO: EVALUAR PUNTO
@@ -125,7 +115,6 @@ map.on("click", e => {
   if (midiendoDerecho) return;
   evaluarDesdePunto(e.latlng, true);
 });
-
 
 // ===============================
 // BOTÓN DERECHO: MEDIR RADIO
@@ -175,7 +164,6 @@ map.getContainer().addEventListener("mouseup", e => {
   dibujarMedicion(puntoMedicion, destino);
 });
 
-
 // ===============================
 // DIBUJAR MEDICIÓN
 // ===============================
@@ -185,6 +173,7 @@ function dibujarMedicion(origen, destino) {
 
   const radio = distanciaKm(origen, destino);
   const color = colorPorRiesgo(radio);
+  const cercano = buscarMasCercano(origen);
 
   L.circleMarker(origen, {
     radius: 8,
@@ -208,8 +197,6 @@ function dibujarMedicion(origen, destino) {
     weight: 2
   }).addTo(capaMedicion);
 
-  const cercano = buscarMasCercano(origen);
-
   if (cercano && cercano.punto) {
     L.circleMarker([cercano.punto.lat, cercano.punto.lon], {
       radius: 12,
@@ -218,13 +205,13 @@ function dibujarMedicion(origen, destino) {
       fillOpacity: 1,
       weight: 3
     })
-    .addTo(capaMedicion)
-    .bindPopup(`
-      <b>Infraestructura más cercana</b><br>
-      ${cercano.punto.nombre}<br>
-      ${cercano.punto.tipo}<br>
-      ${cercano.distancia.toFixed(2)} km
-    `);
+      .addTo(capaMedicion)
+      .bindPopup(`
+        <b>Infraestructura más cercana</b><br>
+        ${cercano.punto.nombre}<br>
+        ${cercano.punto.tipo}<br>
+        ${cercano.distancia.toFixed(2)} km
+      `);
   }
 
   mostrarResultadoMedicion(origen, radio, cercano);
@@ -247,7 +234,6 @@ function mostrarResultadoMedicion(origen, radio, cercano) {
   `;
 }
 
-
 // ===============================
 // LIMPIAR MEDICIÓN
 // ===============================
@@ -263,7 +249,6 @@ function limpiarMedicion() {
     resultado.innerHTML = "Selecciona tu ubicación o haz clic en el mapa para consultar. Usa botón derecho + arrastrar para medir distancia.";
   }
 }
-
 
 // ===============================
 // EVALUACIÓN DE PROXIMIDAD
@@ -311,22 +296,25 @@ function evaluarDesdePunto(punto, limpiar = true) {
     fillOpacity: 1,
     weight: 3
   })
-  .addTo(capaMedicion)
-  .bindPopup(`
-    <b>Infraestructura más cercana</b><br>
-    ${obj.punto.nombre}<br>
-    ${obj.punto.tipo}<br>
-    ${obj.distancia.toFixed(2)} km
-  `);
+    .addTo(capaMedicion)
+    .bindPopup(`
+      <b>Infraestructura más cercana</b><br>
+      ${obj.punto.nombre}<br>
+      ${obj.punto.tipo}<br>
+      ${obj.distancia.toFixed(2)} km
+    `);
 
-  L.polyline([
-    [punto.lat, punto.lng],
-    [obj.punto.lat, obj.punto.lon]
-  ], {
-    color: "#facc15",
-    weight: 3,
-    dashArray: "8,8"
-  }).addTo(capaMedicion);
+  L.polyline(
+    [
+      [punto.lat, punto.lng],
+      [obj.punto.lat, obj.punto.lon]
+    ],
+    {
+      color: "#facc15",
+      weight: 3,
+      dashArray: "8,8"
+    }
+  ).addTo(capaMedicion);
 
   mostrarResultadoEvaluacion(punto, obj);
 }
@@ -356,6 +344,19 @@ function mostrarResultadoEvaluacion(punto, obj) {
   `;
 }
 
+// ===============================
+// CONTROL PERSONALIZADO DE CAPAS
+// ===============================
+
+function toggleLayer(checkbox, capa, elemento) {
+  if (checkbox.checked) {
+    map.addLayer(capa);
+    elemento.classList.add("active");
+  } else {
+    map.removeLayer(capa);
+    elemento.classList.remove("active");
+  }
+}
 
 // ===============================
 // EVENTOS UI
@@ -364,38 +365,28 @@ function mostrarResultadoEvaluacion(punto, obj) {
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("tipoFiltro")?.addEventListener("change", cargarPuntos);
   document.getElementById("busqueda")?.addEventListener("input", cargarPuntos);
-});
 
-// ===============================
-// CONTROL PERSONALIZADO DE CAPAS
-// ===============================
-
-document.addEventListener("DOMContentLoaded", () => {
   const chkAerodromos = document.getElementById("chkAerodromos");
   const chkWMS = document.getElementById("chkWMS");
   const chkMedicion = document.getElementById("chkMedicion");
 
+  const aerodromosEl = chkAerodromos?.closest(".layer-option");
+  const wmsEl = chkWMS?.closest(".layer-option");
+  const medicionEl = chkMedicion?.closest(".layer-option");
+
+  if (chkAerodromos?.checked) aerodromosEl?.classList.add("active");
+  if (chkWMS?.checked) wmsEl?.classList.add("active");
+  if (chkMedicion?.checked) medicionEl?.classList.add("active");
+
   chkAerodromos?.addEventListener("change", () => {
-    if (chkAerodromos.checked) {
-      map.addLayer(capaAerodromos);
-    } else {
-      map.removeLayer(capaAerodromos);
-    }
+    toggleLayer(chkAerodromos, capaAerodromos, aerodromosEl);
   });
 
   chkWMS?.addEventListener("change", () => {
-    if (chkWMS.checked) {
-      map.addLayer(capaWMS);
-    } else {
-      map.removeLayer(capaWMS);
-    }
+    toggleLayer(chkWMS, capaWMS, wmsEl);
   });
 
   chkMedicion?.addEventListener("change", () => {
-    if (chkMedicion.checked) {
-      map.addLayer(capaMedicion);
-    } else {
-      map.removeLayer(capaMedicion);
-    }
+    toggleLayer(chkMedicion, capaMedicion, medicionEl);
   });
 });
