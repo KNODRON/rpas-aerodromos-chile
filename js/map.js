@@ -21,17 +21,6 @@ let capaWMS = L.tileLayer.wms("https://geoportal.cl/geoserver/Infraestructura_Ae
   attribution: "IDE Chile"
 });
 
-L.control.layers(
-  { "Mapa base": mapaBase },
-  {
-    "Aeródromos / Aeropuertos": capaAerodromos,
-    "Capa oficial IDE Chile": capaWMS,
-    "Medición": capaMedicion
-  },
-  { collapsed: false }
-).addTo(map);
-
-
 // ===============================
 // VARIABLES
 // ===============================
@@ -375,4 +364,38 @@ function mostrarResultadoEvaluacion(punto, obj) {
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("tipoFiltro")?.addEventListener("change", cargarPuntos);
   document.getElementById("busqueda")?.addEventListener("input", cargarPuntos);
+});
+
+// ===============================
+// CONTROL PERSONALIZADO DE CAPAS
+// ===============================
+
+document.addEventListener("DOMContentLoaded", () => {
+  const chkAerodromos = document.getElementById("chkAerodromos");
+  const chkWMS = document.getElementById("chkWMS");
+  const chkMedicion = document.getElementById("chkMedicion");
+
+  chkAerodromos?.addEventListener("change", () => {
+    if (chkAerodromos.checked) {
+      map.addLayer(capaAerodromos);
+    } else {
+      map.removeLayer(capaAerodromos);
+    }
+  });
+
+  chkWMS?.addEventListener("change", () => {
+    if (chkWMS.checked) {
+      map.addLayer(capaWMS);
+    } else {
+      map.removeLayer(capaWMS);
+    }
+  });
+
+  chkMedicion?.addEventListener("change", () => {
+    if (chkMedicion.checked) {
+      map.addLayer(capaMedicion);
+    } else {
+      map.removeLayer(capaMedicion);
+    }
+  });
 });
