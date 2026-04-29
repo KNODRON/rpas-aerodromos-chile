@@ -225,3 +225,26 @@ button.danger:hover {
     display: none;
   }
 }
+
+.layer-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 11px;
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.layer-option input {
+  width: auto;
+  margin: 0;
+  accent-color: #4C92BE;
+}
+
+.layer-option span {
+  font-size: 13px;
+  color: #e5e7eb;
+}
