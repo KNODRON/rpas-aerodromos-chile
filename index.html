@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>RPAS Chile | Plataforma Aeronáutica</title>
+  <meta name="description" content="Plataforma de análisis de proximidad a aeródromos, helipuertos y restricciones para operaciones RPAS en Chile.">
+  <link rel="canonical" href="https://aero.georegistro.cl/">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -28,11 +31,11 @@
       <section class="card">
         <h2>Consulta operacional</h2>
 
-        <button onclick="usarMiUbicacion()">📍 Usar mi ubicación</button>
-        <button onclick="centrarChile()" class="secondary">🇨🇱 Centrar Chile</button>
+        <button onclick="usarMiUbicacion()">Detectar ubicación</button>
+        <button onclick="centrarChile()" class="secondary">Centrar Chile</button>
         <button onclick="limpiarMedicion()" class="danger">Limpiar medición</button>
-        <button onclick="abrirNotamDGAC()">🛫 NOTAM DGAC</button>
-        <button onclick="abrirSkyVector()">🌐 SkyVector</button>
+        <button onclick="abrirNotamDGAC()">NOTAM DGAC</button>
+        <button onclick="abrirSkyVector()">SkyVector</button>
       </section>
 
       <section class="card">
