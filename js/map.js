@@ -3,7 +3,8 @@
 // ===============================
 
 let map = L.map("map", {
-  zoomControl: true
+  zoomControl: true,
+  preferCanvas: true
 }).setView([-35, -71], 5);
 
 let mapaBase = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
