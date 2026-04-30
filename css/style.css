@@ -478,3 +478,7 @@ button.danger:hover {
     padding: 12px;
   }
 }
+
+body.medicion-activa {
+  cursor: crosshair;
+}
