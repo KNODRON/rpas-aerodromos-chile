@@ -3,21 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>AERO Chile | Plataforma Aeronáutica</title>
+
   <meta name="description" content="Plataforma de análisis de proximidad a aeródromos, helipuertos y restricciones para operaciones RPAS en Chile.">
   <link rel="canonical" href="https://aero.georegistro.cl/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta http-equiv="X-Frame-Options" content="DENY">
+
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Permissions-Policy" content="geolocation=(self)">
-  <meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  img-src 'self' data: https:;
-  script-src 'self' https://unpkg.com https://cdnjs.cloudflare.com;
-  style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com;
-  connect-src 'self' https:;
-  ">
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="css/style.css">
@@ -45,8 +36,8 @@
         <button onclick="usarMiUbicacion()">Detectar ubicación</button>
         <button onclick="centrarChile()" class="secondary">Centrar Chile</button>
         <button onclick="limpiarMedicion()" class="danger">Limpiar medición</button>
-        <button onclick="abrirNotamDGAC()">NOTAM DGAC</button>
-        <button onclick="abrirSkyVector()">SkyVector</button>
+        <button onclick="abrirNotamDGAC()" class="secondary">NOTAM DGAC</button>
+        <button onclick="abrirSkyVector()" class="secondary">SkyVector</button>
       </section>
 
       <section class="card">
@@ -66,29 +57,29 @@
       <section class="card result-card">
         <h2>Resultado</h2>
         <div id="resultado">
-          Selecciona tu ubicación o haz clic y arrastra sobre el mapa para medir distancia.
+          Selecciona tu ubicación o haz clic sobre el mapa para consultar. Usa botón derecho + arrastrar para medir distancia.
         </div>
       </section>
 
       <section class="card">
         <h2>Capas del mapa</h2>
 
-      <label class="layer-option">
-        <input type="checkbox" id="chkAerodromos" checked>
-        <span>Aeródromos / Aeropuertos</span>
-      </label>
+        <label class="layer-option">
+          <input type="checkbox" id="chkAerodromos" checked>
+          <span>Aeródromos / Aeropuertos</span>
+        </label>
 
-      <label class="layer-option">
-        <input type="checkbox" id="chkWMS">
-        <span>Capa oficial IDE Chile</span>
-      </label>
+        <label class="layer-option">
+          <input type="checkbox" id="chkWMS">
+          <span>Capa oficial IDE Chile</span>
+        </label>
 
-      <label class="layer-option">
-        <input type="checkbox" id="chkMedicion" checked>
-        <span>Medición</span>
-      </label>
+        <label class="layer-option">
+          <input type="checkbox" id="chkMedicion" checked>
+          <span>Medición</span>
+        </label>
       </section>
-      
+
     </aside>
 
     <section class="map-panel">
