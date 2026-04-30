@@ -42,7 +42,7 @@ function colorPorTipo(tipo) {
 function colorPorRiesgo(km) {
   if (km <= 3) return "#ef4444";
   if (km <= 5) return "#facc15";
-  return "#22c55e";
+  return "#61CE70";
 }
 
 // ===============================
@@ -137,7 +137,7 @@ map.getContainer().addEventListener("mousedown", e => {
   L.circleMarker(puntoMedicion, {
     radius: 8,
     color: "#ffffff",
-    fillColor: "#22c55e",
+    fillColor: "#61CE70",
     fillOpacity: 1,
     weight: 3
   }).addTo(capaMedicion);
@@ -178,7 +178,7 @@ function dibujarMedicion(origen, destino) {
   L.circleMarker(origen, {
     radius: 8,
     color: "#ffffff",
-    fillColor: "#22c55e",
+    fillColor: "#61CE70",
     fillOpacity: 1,
     weight: 3
   }).addTo(capaMedicion);
@@ -284,7 +284,7 @@ function evaluarDesdePunto(punto, limpiar = true) {
   L.circleMarker([punto.lat, punto.lng], {
     radius: 8,
     color: "#ffffff",
-    fillColor: "#22c55e",
+    fillColor: "#61CE70",
     fillOpacity: 1,
     weight: 3
   }).addTo(capaMedicion);
