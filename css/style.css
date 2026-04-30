@@ -16,7 +16,8 @@ body {
 }
 
 .topbar {
-  background: linear-gradient(90deg, #022c22, #064e3b);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+}
   border-bottom: 1px solid rgba(255,255,255,0.12);
   padding: 12px 20px;
   display: flex;
@@ -107,7 +108,8 @@ button, select, input {
 }
 
 button {
-  background: #059669;
+  background: var(--color-secondary);
+}
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -115,7 +117,7 @@ button {
 }
 
 button:hover {
-  background: #047857;
+  background: var(--color-primary);
 }
 
 button.secondary {
