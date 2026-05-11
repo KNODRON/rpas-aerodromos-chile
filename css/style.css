@@ -488,3 +488,51 @@ button.danger:hover {
 body.medicion-activa {
   cursor: crosshair;
 }
+
+.popup-card {
+  min-width: 220px;
+  font-family: Arial, sans-serif;
+}
+
+.popup-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1d4ed8;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #dbeafe;
+  padding-bottom: 6px;
+}
+
+.popup-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  margin: 6px 0;
+}
+
+.popup-row span {
+  color: #64748b;
+}
+
+.popup-row strong {
+  color: #0f172a;
+  text-align: right;
+}
+
+.popup-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #38bdf8);
+  color: white;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.popup-btn:hover {
+  filter: brightness(1.08);
+}
