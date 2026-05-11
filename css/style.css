@@ -536,3 +536,25 @@ body.medicion-activa {
 .popup-btn:hover {
   filter: brightness(1.08);
 }
+
+.toast-alert {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: #0f172a;
+  color: white;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  z-index: 99999;
+}
+
+.toast-alert.show {
+  opacity: 1;
+  transform: translateY(0);
+}
