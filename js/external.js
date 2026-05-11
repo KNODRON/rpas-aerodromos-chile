@@ -8,7 +8,7 @@ function abrirSkyVector() {
 
 function abrirNotamAerodromo(codigoOaci) {
   if (!codigoOaci) {
-    alert("No hay código OACI disponible.");
+    mostrarAviso("No hay código OACI disponible.");
     return;
   }
 
