@@ -37,7 +37,7 @@ let midiendoDerecho = false;
 function colorPorTipo(tipo) {
   if (tipo === "Aeropuerto") return "#ef4444";
   if (tipo === "Aeródromo") return "#f97316";
-  if (tipo === "Helipuerto") return "#eab308";
+  if (tipo === "Helipuerto") return "#084cea";
   return "#38bdf8";
 }
 
