@@ -16,3 +16,26 @@ function alertaPorDistancia(km){
   if(km <= 5) return "PRECAUCIÓN";
   return "BAJO";
 }
+
+function mostrarAviso(texto) {
+
+  const aviso = document.createElement("div");
+
+  aviso.className = "toast-alert";
+  aviso.innerText = texto;
+
+  document.body.appendChild(aviso);
+
+  setTimeout(() => {
+    aviso.classList.add("show");
+  }, 50);
+
+  setTimeout(() => {
+    aviso.classList.remove("show");
+
+    setTimeout(() => {
+      aviso.remove();
+    }, 300);
+
+  }, 3000);
+}
