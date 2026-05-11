@@ -95,17 +95,40 @@ function cargarPuntos() {
       weight: 2
     })
       .addTo(capaAerodromos)
-      .bindPopup(`
-        <b>${p.nombre || "Sin nombre"}</b><br>
-        <b>Tipo:</b> ${p.tipo || "S/I"}<br>
-        <b>OACI:</b> ${p.codigo_oaci || "S/I"}<br>
-        <b>Región:</b> ${p.region || "S/I"}<br>
-        <b>Comuna:</b> ${p.comuna || "S/I"}<br>
-        <b>Operador:</b> ${p.operador || "S/I"}<br>
-        <b>Fuente:</b> ${p.fuente || "S/I"}<br>
-        <b>Lat/Lon:</b> ${Number(p.lat).toFixed(6)}, ${Number(p.lon).toFixed(6)}
-        ${botonNotam}
-      `);
+.bindPopup(`
+  <div class="popup-card">
+    <div class="popup-title">${p.nombre || "Sin nombre"}</div>
+
+    <div class="popup-row">
+      <span>Tipo</span>
+      <strong>${p.tipo || "S/I"}</strong>
+    </div>
+
+    <div class="popup-row">
+      <span>OACI</span>
+      <strong>${p.codigo_oaci || "S/I"}</strong>
+    </div>
+
+    <div class="popup-row">
+      <span>Región</span>
+      <strong>${p.region || "S/I"}</strong>
+    </div>
+
+    <div class="popup-row">
+      <span>Comuna</span>
+      <strong>${p.comuna || "S/I"}</strong>
+    </div>
+
+    <div class="popup-row">
+      <span>Coordenadas</span>
+      <strong>${Number(p.lat).toFixed(6)}, ${Number(p.lon).toFixed(6)}</strong>
+    </div>
+
+    <button class="popup-btn" onclick="abrirNotamAerodromo('${p.codigo_oaci || ""}')">
+      Consultar NOTAM
+    </button>
+  </div>
+`);
   });
 
   actualizarContadores(visibles);
