@@ -1,20 +1,26 @@
 :root {
-  --color-primary: #387398;
-  --color-secondary: #4C92BE;
-  --color-accent: #61CE70;
 
-  --color-bg: #020617;
-  --color-panel: #0b1220;
-  --color-card: #111827;
-  --color-card-soft: #162033;
-  --color-border: rgba(148, 163, 184, 0.22);
+  /* ===============================
+     PALETA AERO LIGHT MODERNA
+     =============================== */
 
-  --color-text: #e5e7eb;
-  --color-muted: #94a3b8;
+  --color-primary: #2563eb;
+  --color-secondary: #3b82f6;
+  --color-accent: #38bdf8;
 
-  --risk-high: #991b1b;
-  --risk-medium: #b45309;
-  --risk-low: #047857;
+  --color-bg: #eaf3f8;
+  --color-panel: #ffffff;
+  --color-card: #f8fafc;
+  --color-card-soft: #eef4f9;
+
+  --color-border: rgba(148, 163, 184, 0.28);
+
+  --color-text: #0f172a;
+  --color-muted: #475569;
+
+  --risk-high: #dc2626;
+  --risk-medium: #d97706;
+  --risk-low: #059669;
 }
 
 * {
