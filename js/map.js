@@ -37,13 +37,20 @@ let midiendoDerecho = false;
 function colorPorTipo(tipo) {
   if (tipo === "Aeropuerto") return "#ef4444";
   if (tipo === "Aeródromo") return "#f97316";
+  if (tipo === "Helipuerto") return "#eab308";
   return "#38bdf8";
+}
+
+function radioPorTipo(tipo) {
+  if (tipo === "Aeropuerto") return 7;
+  if (tipo === "Helipuerto") return 6;
+  return 5;
 }
 
 function colorPorRiesgo(km) {
   if (km <= 3) return "#ef4444";
   if (km <= 5) return "#facc15";
-  return "#61CE70";
+  return "#22c55e";
 }
 
 // ===============================
@@ -61,18 +68,30 @@ function cargarPuntos() {
   datos.forEach(p => {
     if (!p.lat || !p.lon) return;
 
-    const texto = `${p.nombre} ${p.codigo_oaci || ""} ${p.region || ""} ${p.comuna || ""}`.toLowerCase();
+    const texto = `${p.nombre || ""} ${p.codigo_oaci || ""} ${p.region || ""} ${p.comuna || ""} ${p.operador || ""} ${p.fuente || ""}`.toLowerCase();
 
     if (tipoFiltro !== "TODOS" && p.tipo !== tipoFiltro) return;
     if (busqueda && !texto.includes(busqueda)) return;
 
     visibles++;
 
+    const color = colorPorTipo(p.tipo);
+
+    let botonNotam = "";
+    if (p.codigo_oaci && p.tipo !== "Helipuerto") {
+      botonNotam = `
+        <br>
+        <button class="popup-btn" onclick="abrirNotamAerodromo('${p.codigo_oaci || ""}')">
+          Ver NOTAM
+        </button>
+      `;
+    }
+
     L.circleMarker([p.lat, p.lon], {
-      radius: p.tipo === "Aeropuerto" ? 7 : 5,
-      color: colorPorTipo(p.tipo),
-      fillColor: colorPorTipo(p.tipo),
-      fillOpacity: 0.85,
+      radius: radioPorTipo(p.tipo),
+      color: color,
+      fillColor: color,
+      fillOpacity: 0.86,
       weight: 2
     })
       .addTo(capaAerodromos)
@@ -82,10 +101,10 @@ function cargarPuntos() {
         <b>OACI:</b> ${p.codigo_oaci || "S/I"}<br>
         <b>Región:</b> ${p.region || "S/I"}<br>
         <b>Comuna:</b> ${p.comuna || "S/I"}<br>
-        <b>Uso:</b> ${p.uso || "S/I"}<br><br>
-        <button class="popup-btn" onclick="abrirNotamAerodromo('${p.codigo_oaci || ""}')">
-          Ver NOTAM
-        </button>
+        <b>Operador:</b> ${p.operador || "S/I"}<br>
+        <b>Fuente:</b> ${p.fuente || "S/I"}<br>
+        <b>Lat/Lon:</b> ${Number(p.lat).toFixed(6)}, ${Number(p.lon).toFixed(6)}
+        ${botonNotam}
       `);
   });
 
@@ -202,7 +221,7 @@ function dibujarMedicion(origen, destino) {
     L.circleMarker([cercano.punto.lat, cercano.punto.lon], {
       radius: 12,
       color: "#ffffff",
-      fillColor: "#ef4444",
+      fillColor: colorPorTipo(cercano.punto.tipo),
       fillOpacity: 1,
       weight: 3
     })
@@ -231,6 +250,7 @@ function mostrarResultadoMedicion(origen, radio, cercano) {
     ${cercano?.punto?.nombre || "S/I"}<br>
     <b>Tipo:</b> ${cercano?.punto?.tipo || "S/I"}<br>
     <b>OACI:</b> ${cercano?.punto?.codigo_oaci || "S/I"}<br>
+    <b>Fuente:</b> ${cercano?.punto?.fuente || "S/I"}<br>
     <b>Distancia:</b> ${cercano?.distancia?.toFixed(2) || "S/I"} km
   `;
 }
@@ -293,7 +313,7 @@ function evaluarDesdePunto(punto, limpiar = true) {
   marcadorCercano = L.circleMarker([obj.punto.lat, obj.punto.lon], {
     radius: 12,
     color: "#ffffff",
-    fillColor: "#ef4444",
+    fillColor: colorPorTipo(obj.punto.tipo),
     fillOpacity: 1,
     weight: 3
   })
@@ -339,6 +359,7 @@ function mostrarResultadoEvaluacion(punto, obj) {
     <b>Tipo:</b> ${obj.punto.tipo}<br>
     <b>OACI:</b> ${obj.punto.codigo_oaci || "S/I"}<br>
     <b>Comuna:</b> ${obj.punto.comuna || "S/I"}<br>
+    <b>Fuente:</b> ${obj.punto.fuente || "S/I"}<br>
     <b>Distancia:</b> ${obj.distancia.toFixed(2)} km
 
     <div class="alerta ${clase}">${nivel}</div>
