@@ -130,7 +130,7 @@ body {
 .card h2 {
   margin: 0 0 12px;
   font-size: 15px;
-  color: #1e3a8a;
+  color: #1d4ed8;
   letter-spacing: 0.2px;
 }
 
@@ -153,7 +153,7 @@ label {
   margin-top: 10px;
   margin-bottom: 5px;
   font-size: 12px;
-  color: #cbd5e1;
+  color: #334155;
 }
 
 button,
@@ -195,13 +195,13 @@ button:active {
 }
 
 button.secondary {
-  background: rgba(76, 146, 190, 0.10);
+  background: #eff6ff;
   border: 1px solid rgba(76, 146, 190, 0.55);
-  color: #dff4ff;
+  color: #1d4ed8;
 }
 
 button.secondary:hover {
-  background: rgba(76, 146, 190, 0.20);
+  background: #dbeafe;
 }
 
 button.danger {
@@ -287,7 +287,7 @@ button.danger:hover {
 }
 
 .layer-option input:checked + span {
-  color: #b9ecff;
+  color: #1d4ed8;
   font-weight: 700;
 }
 
@@ -320,7 +320,7 @@ button.danger:hover {
 .bottom-panel strong {
   display: block;
   font-size: 15px;
-  color: #b9ecff;
+  color: #2563eb;
 }
 
 .bottom-panel span {
