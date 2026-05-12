@@ -276,6 +276,18 @@
     "lon": -72.348611
   },
   {
+    "nombre": "Base Aérea Maquehue",
+    "codigo_oaci": "",
+    "codigo_iata": "",
+    "tipo": "Aeródromo",
+    "region": "Araucanía",
+    "comuna": "Padre Las Casas",
+    "uso": "FACH",
+    "red": "Pequeño Aeródromo",
+    "lat": -38.767998,
+    "lon": -72.638093
+  },
+  {
     "nombre": "Las Marías",
     "codigo_oaci": "SCVL",
     "codigo_iata": "",
